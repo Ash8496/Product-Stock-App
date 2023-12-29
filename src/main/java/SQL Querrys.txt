@@ -1,0 +1,55 @@
+//////////product_info, order_info/////////////
+create table product_info
+(
+    product_id int primary key,
+    product_name varchar(50) not null,
+    product_price double,
+    product_qty int check(product_qty >= 0)
+);
+
+create table order_info (
+    order_id int primary key auto_increment,
+    customer_name varchar(50) not null,
+    product_id int,
+    product_qty int check (product_qty >= 0),
+    foreign key (product_id) references product_info(product_id)
+);
+
+
+//////////cancelOrder procedure//////////
+
+delimiter //
+create procedure cancelOrder(in order_id int, out stat boolean)
+begin
+    declare qty int;
+    declare p_id int;
+    set stat = false;
+
+    select product_qty, product_id into qty, p_id from order_info where order_id = order_id;
+
+    -- Add debug prints
+    select 'qty:', qty, 'p_id:', p_id;
+
+    delete from order_info where order_id = order_id;
+    update product_info set product_qty = product_qty + qty where product_id = p_id;
+
+    set stat = true;
+end//
+delimiter ;
+
+
+//////////placeOrder procedure//////////
+
+delimiter //
+create procedure placeOrder(in c_name varchar(20), in p_id int, in p_qty int, out stat boolean)
+begin
+    declare qty int;
+    set stat = false;
+    select product_qty into qty from product_info where product_id = p_id;
+    if p_qty <= qty then
+        insert into order_info (customer_name, product_id, product_qty) values (c_name, p_id, p_qty);
+        update product_info set product_qty = product_qty - p_qty where product_id = p_id;
+        set stat = true;
+    end if;
+end//
+delimiter ;
