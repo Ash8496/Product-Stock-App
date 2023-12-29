@@ -24,15 +24,9 @@ begin
     declare qty int;
     declare p_id int;
     set stat = false;
-
     select product_qty, product_id into qty, p_id from order_info where order_id = order_id;
-
-    -- Add debug prints
-    select 'qty:', qty, 'p_id:', p_id;
-
     delete from order_info where order_id = order_id;
     update product_info set product_qty = product_qty + qty where product_id = p_id;
-
     set stat = true;
 end//
 delimiter ;
